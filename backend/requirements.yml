@@ -1,0 +1,17 @@
+name: team-2
+dependencies:
+  - python=3.10.4
+  - pip=22.2.2
+  - psycopg2
+  - pip:
+      - django==4.1.1
+      - djangorestframework==3.14.0
+      - djangorestframework_simplejwt==5.2.1
+      - django-extensions
+      - drf-yasg==1.21.4
+      - pillow==9.2.0
+      - flake8==5.0.4
+      - gunicorn==20.1.0
+      - django-cors-headers==3.13.0
+      - django-fullurl==1.0
+      - stripe==4.2.0

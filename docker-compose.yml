@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  backend:
+    image: registry.gitlab.propulsion-home.ch/full-stack/batch-21-aug-2022/final-projects/bags-for-everyone-2.0:latest
+    ports:
+      - "8001:8000"
+      - '4777:22'
+    volumes:
+      - ./backend:/backend
+      - ./media-files:/media-files
+      - ./static-files:/static-files
+    env_file:
+      - ./envs/dev.env
+    command: "sh /scripts/dev.sh"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    env_file:
+      - ./envs/dev.env
+    ports:
+      - "5555:5432"
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
+
+  email:
+    image: registry.gitlab.propulsion-home.ch/full-stack/batch-21-aug-2022/final-projects/bags-for-everyone-2.0:latest
+    restart: always
+    env_file:
+      - ./envs/dev.env
+    command: 'python manage.py send_email'
+    volumes:
+      - ./backend:/backend
+      - ./media-files:/media-files
+      - ./static-files:/static-files
+    depends_on:
+      - postgres
+      - backend
+
+
+
+volumes:
+  postgres_db:
+  media-files:
+  static-files:

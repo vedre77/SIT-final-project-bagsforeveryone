@@ -1,0 +1,10 @@
+.idea
+.DS_Store
+*.pyc
+__pycache__
+*.sqlite3
+static-files
+media-files
+frontend/node_modules
+node_modules
+/backend/post/migrations/0003_alter_post_author.py

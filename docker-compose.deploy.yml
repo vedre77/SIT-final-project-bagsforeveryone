@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+  backend:
+    image: registry.gitlab.propulsion-home.ch/full-stack/batch-21-aug-2022/final-projects/bags-for-everyone-2.0:master
+    env_file:
+      - ./envs/prod.env
+    command: "sh /scripts/prod.sh"
+    volumes:
+      - static_files:/static-files
+      - media_files:/media-files
+      - build:/frontend/build
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    env_file:
+      - ./envs/prod.env
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
+
+  email:
+    image: registry.gitlab.propulsion-home.ch/full-stack/batch-21-aug-2022/final-projects/bags-for-everyone-2.0:master
+    restart: always
+    env_file:
+      - ./envs/prod.env
+    command: 'python manage.py send_email'
+    depends_on:
+      - postgres
+      - backend
+    volumes:
+      - static_files:/static-files
+      - media_files:/media-files
+
+
+  nginx:
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d/
+      - static_files:/static-files
+      - media_files:/media-files
+      - /etc/letsencrypt:/etc/letsencrypt
+      - build:/build
+
+
+volumes:
+  postgres_db:
+  media_files:
+  static_files:
+  build:
+

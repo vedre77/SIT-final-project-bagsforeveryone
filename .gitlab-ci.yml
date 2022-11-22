@@ -1,0 +1,62 @@
+stages:
+  - pull
+  - build
+  - lint
+  - push
+  - deploy
+  - cleanup
+
+before_script:
+  - docker login -u "gitlab-ci-token" -p "$CI_BUILD_TOKEN" "$CI_REGISTRY"
+
+pull:
+  stage: pull
+  allow_failure: true
+  script:
+    - docker pull "$CI_REGISTRY_IMAGE":latest
+
+build:
+  stage: build
+  script:
+    - docker build --tag="$CI_PIPELINE_ID":"$CI_COMMIT_REF_NAME" --cache-from="$CI_REGISTRY_IMAGE":latest .
+
+lint:
+  stage: lint
+  allow_failure: true
+  only:
+    - master
+  script:
+    - export CI_PIPELINE_ID=$CI_PIPELINE_ID
+    - export CI_BUILD_REF_NAME=$CI_COMMIT_REF_NAME
+    - docker-compose -p "$CI_PIPELINE_ID" -f docker-compose.ci.yml run backend flake8 .
+
+push master:
+  stage: push
+  only:
+    - master
+  script:
+    - docker tag "$CI_PIPELINE_ID":"$CI_COMMIT_REF_NAME" "$CI_REGISTRY_IMAGE":"$CI_COMMIT_REF_NAME"
+    - docker push "$CI_REGISTRY_IMAGE":"$CI_COMMIT_REF_NAME"
+
+push latest:
+  stage: push
+  script:
+    - docker tag "$CI_PIPELINE_ID":"$CI_COMMIT_REF_NAME" "$CI_REGISTRY_IMAGE":latest
+    - docker push "$CI_REGISTRY_IMAGE":latest
+
+deploy:
+  stage: deploy
+  when: manual
+  script:
+    - docker-compose -f docker-compose.deploy.yml pull
+    - docker-compose -f docker-compose.deploy.yml down --remove-orphans
+    - docker volume rm bags-for-everyone-20_build
+#    - docker volume rm bags-for-everyone-20_postgres_db
+    - docker-compose -f docker-compose.deploy.yml up -d
+
+cleanup:
+  stage: cleanup
+  when: always
+  script:
+    - docker rmi -f "$CI_PIPELINE_ID":"$CI_COMMIT_REF_NAME"
+    - docker-compose -p "$CI_PIPELINE_ID" -f docker-compose.ci.yml down --remove-orphans

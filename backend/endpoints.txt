@@ -1,0 +1,22 @@
+Posts
+
+Post model
+with likes
+and comments
+
+donation
+
+donation
+ammount (select or num)
+
+product
+name
+price
+categories
+description
+material
+dimensions
+
+user
+
+buy
